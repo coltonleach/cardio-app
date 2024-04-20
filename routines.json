@@ -1,0 +1,117 @@
+{
+  "None 2 Run": [
+    {
+      "Day 1": {
+        "pattern": [
+          "jog",
+          "walk",
+          "jog",
+          "walk",
+          "jog",
+          "walk",
+          "jog",
+          "walk",
+          "jog",
+          "walk",
+          "jog",
+          "walk"
+        ],
+        "jog": 30,
+        "walk": 120
+      },
+      "Day 2": {
+        "pattern": [
+          "jog",
+          "walk",
+          "jog",
+          "walk",
+          "jog",
+          "walk",
+          "jog",
+          "walk",
+          "jog",
+          "walk",
+          "jog",
+          "walk"
+        ],
+        "jog": 30,
+        "walk": 120
+      },
+      "Day 3": {
+        "pattern": [
+          "jog",
+          "walk",
+          "jog",
+          "walk",
+          "jog",
+          "walk",
+          "jog",
+          "walk",
+          "jog",
+          "walk",
+          "jog",
+          "walk"
+        ],
+        "jog": 30,
+        "walk": 120
+      }
+    },
+    {
+      "Day 1": {
+        "pattern": [
+          "jog",
+          "walk",
+          "jog",
+          "walk",
+          "jog",
+          "walk",
+          "jog",
+          "walk",
+          "jog",
+          "walk",
+          "jog",
+          "walk"
+        ],
+        "jog": 60,
+        "walk": 120
+      },
+      "Day 2": {
+        "pattern": [
+          "jog",
+          "walk",
+          "jog",
+          "walk",
+          "jog",
+          "walk",
+          "jog",
+          "walk",
+          "jog",
+          "walk",
+          "jog",
+          "walk"
+        ],
+        "jog": 60,
+        "walk": 120
+      },
+      "Day 3": {
+        "pattern": [
+          "jog",
+          "walk",
+          "jog",
+          "walk",
+          "jog",
+          "walk",
+          "jog",
+          "walk",
+          "jog",
+          "walk",
+          "jog",
+          "walk"
+        ],
+        "jog": 60,
+        "walk": 120
+      }
+    }
+  ],
+  "Couch to 5k": []
+}
