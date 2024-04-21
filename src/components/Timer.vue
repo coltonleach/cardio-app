@@ -146,10 +146,13 @@ const handleNext = () => {
       partLog[activePart.id + 1].seconds
     }}s
   </p>
+  <p v-if="partLog.length > 0" class="current-status">
+    On part {{ activePart.id + 1 }} / {{ partLog.length }}
+  </p>
   <div class="add-btn-container">
     <button @click="handleAdd('walk')">Add Walk</button>
     <button @click="handleAdd('jog')">Add Jog</button>
-    <button @click="handleAdd('run')">Add Fast</button>
+    <button @click="handleAdd('run')">Add Run</button>
   </div>
   <div class="step-btn-container">
     <button :disabled="activePart.id <= 0" @click="handlePrevious">
@@ -160,9 +163,8 @@ const handleNext = () => {
     </button>
   </div>
   <ol class="parts">
-    <li v-for="part in partLog">
-      {{ getType(part.type) }} for {{ part.minutes }}m{{ part.seconds }}s -
-      {{ part.active }}
+    <li v-for="part in partLog" :class="part.active ? 'current-part' : ''">
+      {{ getType(part.type) }} for {{ part.minutes }}m{{ part.seconds }}s
     </li>
   </ol>
 </template>
@@ -255,6 +257,10 @@ input[type='number'] {
   text-align: center;
 }
 
+.current-status {
+  text-align: center;
+}
+
 .add-btn-container {
   display: flex;
   gap: 1rem;
@@ -270,6 +276,19 @@ input[type='number'] {
 
   button {
     width: 100%;
+  }
+}
+
+.parts {
+  li {
+    margin: 1rem;
+    font-style: italic;
+
+    &.current-part {
+      font-size: 1.1rem;
+      font-style: normal;
+      font-weight: 700;
+    }
   }
 }
 </style>
