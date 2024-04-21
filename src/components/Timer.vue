@@ -7,30 +7,34 @@ const goalDate = ref(null)
 const timer = ref(null)
 const startBtn = ref(null)
 const stopBtn = ref(null)
-const hours = ref(0)
 const minutes = ref(0)
 const seconds = ref(0)
 const minutesInput = ref(null)
 const secondsInput = ref(null)
 const difference = ref(null)
 
-const handleStart = () => {
+const getType = (type) => {
+  if (type === 'walk') return 'Walking'
+  else if (type === 'jog') return 'Jogging'
+  else if (type === 'run') return 'Running'
+}
+
+const updateGoal = () => {
   goalDate.value = new Date(
-    new Date().getTime() +
-      hours.value * 60 * 60 * 1000 +
-      minutes.value * 60 * 1000 +
-      seconds.value * 1000
+    new Date().getTime() + minutes.value * 60 * 1000 + seconds.value * 1000
   )
+}
+
+const handleStart = () => {
+  updateGoal()
   timer.value = setInterval(() => {
     difference.value = goalDate.value - new Date()
     if (difference.value <= 0) {
-      clearInterval(timer.value)
-      minutes.value = 0
-      seconds.value = 0
+      if (partLog.value.length <= activePart.value.id + 1) {
+        clearInterval(timer.value)
+      }
+      handleNext()
     }
-    hours.value = Math.floor(
-      (difference.value % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
-    )
     minutes.value = Math.floor(
       (difference.value % (1000 * 60 * 60)) / (1000 * 60)
     )
@@ -62,10 +66,14 @@ const handleAdd = (type) => {
 const handleClearLog = () => {
   partLog.value = []
   activePart.value = {}
+  minutes.value = 0
+  seconds.value = 0
 }
 
 const handlePrevious = () => {
   if (activePart.value.id + 1 > 0) {
+    partLog.value[activePart.value.id].active = false
+    partLog.value[activePart.value.id - 1].active = true
     activePart.value = partLog.value[activePart.value.id - 1]
     minutes.value = activePart.value.minutes
     seconds.value = activePart.value.seconds
@@ -74,10 +82,13 @@ const handlePrevious = () => {
 
 const handleNext = () => {
   if (partLog.value.length > activePart.value.id + 1) {
+    partLog.value[activePart.value.id].active = false
+    partLog.value[activePart.value.id + 1].active = true
     activePart.value = partLog.value[activePart.value.id + 1]
     minutes.value = activePart.value.minutes
     seconds.value = activePart.value.seconds
   }
+  updateGoal()
 }
 </script>
 <template>
@@ -92,6 +103,7 @@ const handleNext = () => {
     min="00"
     max="60"
     value="0"
+    pattern="[0-9]{2}"
     ref="minutesInput"
   />
   <input
@@ -101,20 +113,24 @@ const handleNext = () => {
     min="00"
     max="59"
     value="0"
+    step="5"
     ref="secondsInput"
   />
   <code>current time: {{ `${minutes}:${seconds}` }}<br /></code>
   <button @click="handleAdd('walk')">add walk</button>
   <button @click="handleAdd('jog')">add jog</button>
-  <button @click="handleAdd('fast')">add fast</button>
+  <button @click="handleAdd('run')">add fast</button>
   <button @click="handleClearLog">clear log</button>
   <button :disabled="activePart.id <= 0" @click="handlePrevious">prev</button>
   <button :disabled="partLog.length <= activePart.id + 1" @click="handleNext">
     next
   </button>
   <br />
-  <code>{{ partLog }}</code>
-  <br />
-  <code>{{ activePart }}</code>
+  <ol class="parts">
+    <li v-for="part in partLog">
+      {{ getType(part.type) }} for {{ part.minutes }}m{{ part.seconds }}s -
+      {{ part.active }}
+    </li>
+  </ol>
 </template>
 <style></style>
