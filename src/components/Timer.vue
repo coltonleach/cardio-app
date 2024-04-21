@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from 'vue'
 
-const timeLog = ref([])
+const partLog = ref([])
 const activePart = ref({})
 const goalDate = ref(null)
 const timer = ref(null)
@@ -42,40 +42,46 @@ const handleStop = () => {
   clearInterval(timer.value)
 }
 
-const handleMinuteInput = (event) => {
-  minutes.value = event.target.value
-}
-
-const handleSecondInput = (event) => {
-  seconds.value = event.target.value
-}
-
 const handleAdd = (type) => {
-  timeLog.value.push({
+  partLog.value.push({
     type: type,
-    minutes: minutes.value,
-    seconds: seconds.value,
-    id: timeLog.value.length,
-    active: timeLog.value.length === 0 ? true : false,
+    minutes: minutesInput.value.value,
+    seconds: secondsInput.value.value,
+    id: partLog.value.length,
+    active: partLog.value.length === 0 ? true : false,
   })
+  if (partLog.value.length === 1) {
+    activePart.value = partLog.value[0]
+  }
   secondsInput.value.value = 0
   minutesInput.value.value = 0
-  seconds.value = 0
-  minutes.value = 0
+  minutes.value = activePart.value.minutes
+  seconds.value = activePart.value.seconds
 }
 
 const handleClearLog = () => {
-  timeLog.value = []
+  partLog.value = []
+  activePart.value = {}
 }
 
 const handlePrevious = () => {
-  console.log('prev')
+  if (activePart.value.id + 1 > 0) {
+    activePart.value = partLog.value[activePart.value.id - 1]
+    minutes.value = activePart.value.minutes
+    seconds.value = activePart.value.seconds
+  }
 }
 
-const handleNext = () => {}
+const handleNext = () => {
+  if (partLog.value.length > activePart.value.id + 1) {
+    activePart.value = partLog.value[activePart.value.id + 1]
+    minutes.value = activePart.value.minutes
+    seconds.value = activePart.value.seconds
+  }
+}
 </script>
 <template>
-  <button :disabled="timeLog.length <= 0" @click="handleStart" ref="startBtn">
+  <button :disabled="partLog.length <= 0" @click="handleStart" ref="startBtn">
     start
   </button>
   <button @click="handleStop" ref="stopBtn">stop</button>
@@ -87,7 +93,6 @@ const handleNext = () => {}
     max="60"
     value="0"
     ref="minutesInput"
-    @input="handleMinuteInput"
   />
   <input
     type="number"
@@ -97,15 +102,19 @@ const handleNext = () => {}
     max="59"
     value="0"
     ref="secondsInput"
-    @change="(e) => handleSecondInput(e)"
   />
   <code>current time: {{ `${minutes}:${seconds}` }}<br /></code>
   <button @click="handleAdd('walk')">add walk</button>
   <button @click="handleAdd('jog')">add jog</button>
+  <button @click="handleAdd('fast')">add fast</button>
   <button @click="handleClearLog">clear log</button>
-  <button @click="handlePrevious">prev</button>
-  <button @click="handleNext">next</button>
+  <button :disabled="activePart.id <= 0" @click="handlePrevious">prev</button>
+  <button :disabled="partLog.length <= activePart.id + 1" @click="handleNext">
+    next
+  </button>
   <br />
-  <code>{{ timeLog }}</code>
+  <code>{{ partLog }}</code>
+  <br />
+  <code>{{ activePart }}</code>
 </template>
 <style></style>
