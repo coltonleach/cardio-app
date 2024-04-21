@@ -3,6 +3,7 @@ import { ref } from 'vue'
 
 const partLog = ref([])
 const activePart = ref({})
+const status = ref('inactive')
 const goalDate = ref(null)
 const timer = ref(null)
 const startBtn = ref(null)
@@ -26,6 +27,7 @@ const updateGoal = () => {
 }
 
 const handleStart = () => {
+  status.value = 'active'
   updateGoal()
   timer.value = setInterval(() => {
     difference.value = goalDate.value - new Date()
@@ -34,16 +36,18 @@ const handleStart = () => {
         clearInterval(timer.value)
       }
       handleNext()
+    } else {
+      minutes.value = Math.floor(
+        (difference.value % (1000 * 60 * 60)) / (1000 * 60)
+      )
+      seconds.value = Math.floor((difference.value % (1000 * 60)) / 1000)
     }
-    minutes.value = Math.floor(
-      (difference.value % (1000 * 60 * 60)) / (1000 * 60)
-    )
-    seconds.value = Math.floor((difference.value % (1000 * 60)) / 1000)
   }, 1000)
 }
 
 const handleStop = () => {
   clearInterval(timer.value)
+  status.value = 'inactive'
 }
 
 const handleAdd = (type) => {
@@ -68,6 +72,7 @@ const handleClearLog = () => {
   activePart.value = {}
   minutes.value = 0
   seconds.value = 0
+  status.value = 'inactive'
 }
 
 const handlePrevious = () => {
@@ -91,41 +96,69 @@ const handleNext = () => {
   updateGoal()
 }
 </script>
+
 <template>
-  <button :disabled="partLog.length <= 0" @click="handleStart" ref="startBtn">
-    start
-  </button>
-  <button @click="handleStop" ref="stopBtn">stop</button>
-  <input
-    type="number"
-    name="minutes"
-    id="minutes"
-    min="00"
-    max="60"
-    value="0"
-    pattern="[0-9]{2}"
-    ref="minutesInput"
-  />
-  <input
-    type="number"
-    name="seconds"
-    id="seconds"
-    min="00"
-    max="59"
-    value="0"
-    step="5"
-    ref="secondsInput"
-  />
-  <code>current time: {{ `${minutes}:${seconds}` }}<br /></code>
-  <button @click="handleAdd('walk')">add walk</button>
-  <button @click="handleAdd('jog')">add jog</button>
-  <button @click="handleAdd('run')">add fast</button>
-  <button @click="handleClearLog">clear log</button>
-  <button :disabled="activePart.id <= 0" @click="handlePrevious">prev</button>
-  <button :disabled="partLog.length <= activePart.id + 1" @click="handleNext">
-    next
-  </button>
-  <br />
+  <div class="top-btn-container">
+    <button
+      class="start"
+      :disabled="partLog.length <= 0"
+      @click="handleStart"
+      ref="startBtn"
+    >
+      Start
+    </button>
+    <button class="stop" @click="handleStop" ref="stopBtn">Stop</button>
+    <button @click="handleClearLog">Clear</button>
+  </div>
+  <p class="active" v-if="status == 'active'">
+    <span>{{ getType(activePart.type) }}</span> for {{ minutes }}m{{ seconds }}s
+  </p>
+  <div v-if="status != 'active'" class="time-container">
+    <div>
+      <input
+        type="number"
+        name="minutes"
+        id="minutes"
+        min="00"
+        max="60"
+        value="0"
+        ref="minutesInput"
+      />
+      <p>min</p>
+    </div>
+    <div>
+      <input
+        type="number"
+        name="seconds"
+        id="seconds"
+        min="00"
+        max="59"
+        value="0"
+        step="5"
+        ref="secondsInput"
+      />
+      <p>sec</p>
+    </div>
+  </div>
+  <p class="up-next" v-if="partLog[activePart.id + 1] && status != 'inactive'">
+    Up next: {{ getType(partLog[activePart.id + 1].type) }} for
+    {{ partLog[activePart.id + 1].minutes }}m{{
+      partLog[activePart.id + 1].seconds
+    }}s
+  </p>
+  <div class="add-btn-container">
+    <button @click="handleAdd('walk')">Add Walk</button>
+    <button @click="handleAdd('jog')">Add Jog</button>
+    <button @click="handleAdd('run')">Add Fast</button>
+  </div>
+  <div class="step-btn-container">
+    <button :disabled="activePart.id <= 0" @click="handlePrevious">
+      Previous
+    </button>
+    <button :disabled="partLog.length <= activePart.id + 1" @click="handleNext">
+      Next
+    </button>
+  </div>
   <ol class="parts">
     <li v-for="part in partLog">
       {{ getType(part.type) }} for {{ part.minutes }}m{{ part.seconds }}s -
@@ -133,4 +166,110 @@ const handleNext = () => {
     </li>
   </ol>
 </template>
-<style></style>
+
+<style lang="scss">
+button {
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  border-radius: 0.5rem;
+  background: hsl(232, 100%, 74%);
+  color: hsl(263, 100%, 24%);
+  box-shadow: inset 0 3px 0 hsl(232, 100%, 85%), 0 3px 6px hsla(0, 0%, 0%, 0.15),
+    0 2px 4px hsla(0, 0%, 0%, 0.12);
+  border: none;
+  transition: filter 150ms linear;
+
+  &:hover {
+    cursor: pointer;
+  }
+
+  &.start {
+    background-color: hsla(133, 41%, 54%, 1);
+    color: hsla(151, 87%, 15%, 1);
+    box-shadow: inset 0 3px 0px hsl(133, 41%, 75%),
+      0 2px 6px hsla(0, 0%, 0%, 0.15), 0 2px 4px hsla(0, 0%, 0%, 0.12);
+  }
+
+  &.stop {
+    color: hsla(0, 80%, 30%, 1);
+    background-color: hsla(0, 80%, 83%, 1);
+    box-shadow: inset 0 3px 0px hsl(340, 60%, 90%),
+      0 2px 6px hsla(0, 0%, 0%, 0.15), 0 2px 4px hsla(0, 0%, 0%, 0.12);
+  }
+
+  &:disabled {
+    filter: saturate(0);
+    cursor: not-allowed;
+  }
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type='number'] {
+  font-size: 5rem;
+  font-weight: 600;
+  width: 8rem;
+  height: 8rem;
+  -moz-appearance: textfield;
+  text-align: center;
+  border-radius: 0.5rem;
+  border: 2px solid var(--white);
+  color: var(--white);
+  background-color: var(--black);
+  transition: border-color 150ms ease-in-out;
+
+  &:focus {
+    outline: none;
+    border-color: #b2b6c1;
+  }
+}
+
+.top-btn-container {
+  display: flex;
+  justify-content: space-evenly;
+  margin-top: 2rem;
+}
+
+.active {
+  text-align: center;
+  font-size: 2rem;
+  font-weight: 500;
+
+  span {
+    font-weight: 700;
+  }
+}
+
+.time-container {
+  display: flex;
+  justify-content: center;
+  text-align: center;
+  gap: 1rem;
+}
+
+.up-next {
+  text-align: center;
+}
+
+.add-btn-container {
+  display: flex;
+  gap: 1rem;
+
+  button {
+    padding: 0.75rem 1rem;
+  }
+}
+
+.step-btn-container {
+  display: flex;
+  gap: 1rem;
+
+  button {
+    width: 100%;
+  }
+}
+</style>
