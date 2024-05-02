@@ -3,6 +3,7 @@ import { ref } from 'vue'
 
 const partLog = ref([])
 const activePart = ref({})
+const onBeforeUnload = ref(false)
 const status = ref('inactive')
 const goalDate = ref(null)
 const timer = ref(null)
@@ -51,6 +52,10 @@ const handleStop = () => {
 }
 
 const handleAdd = (type) => {
+  if (!onBeforeUnload.value) {
+    addEventListener('beforeunload', handleBeforeUnload)
+    onBeforeUnload.value = true
+  }
   partLog.value.push({
     type: type,
     minutes: minutesInput.value.value,
@@ -68,11 +73,15 @@ const handleAdd = (type) => {
 }
 
 const handleClearLog = () => {
-  partLog.value = []
-  activePart.value = {}
-  minutes.value = 0
-  seconds.value = 0
-  status.value = 'inactive'
+  if (confirm('Are you sure you want to clear the log?')) {
+    partLog.value = []
+    activePart.value = {}
+    minutes.value = 0
+    seconds.value = 0
+    status.value = 'inactive'
+    onBeforeUnload.value = false
+    removeEventListener('beforeunload', handleBeforeUnload)
+  }
 }
 
 const handlePrevious = () => {
@@ -94,6 +103,10 @@ const handleNext = () => {
     seconds.value = activePart.value.seconds
   }
   updateGoal()
+}
+
+const handleBeforeUnload = (e) => {
+  e.preventDefault()
 }
 </script>
 
