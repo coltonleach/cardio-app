@@ -1,5 +1,6 @@
 <script setup>
 import { ref } from 'vue'
+import MaterialSymbolsDeleteForever from '../assets/TrashCan.vue'
 
 const partLog = ref([])
 const activePart = ref({})
@@ -14,6 +15,8 @@ const seconds = ref(0)
 const minutesInput = ref(null)
 const secondsInput = ref(null)
 const difference = ref(null)
+
+//TODO: when a part gets deleted, the IDs never change, which breaks the "handleNext" and "handlePrev" functionality. Need to refactor those functions so instead of simply indexing the array and subtracting/adding 1, filter the array for the prev/next part.
 
 const getType = (type) => {
   if (type === 'walk') return 'Walking'
@@ -92,6 +95,7 @@ const handlePrevious = () => {
     minutes.value = activePart.value.minutes
     seconds.value = activePart.value.seconds
   }
+  updateGoal()
 }
 
 const handleNext = () => {
@@ -107,6 +111,18 @@ const handleNext = () => {
 
 const handleBeforeUnload = (e) => {
   e.preventDefault()
+}
+
+const handleDelete = (id) => {
+  const filteredPartLog = partLog.value.filter((part) => {
+    if (part.id !== id) {
+      if (part.id > id) {
+        part.id -= 1
+      }
+      return part
+    }
+  })
+  partLog.value = filteredPartLog
 }
 </script>
 
@@ -177,7 +193,11 @@ const handleBeforeUnload = (e) => {
   </div>
   <ol class="parts">
     <li v-for="part in partLog" :class="part.active ? 'current-part' : ''">
-      {{ getType(part.type) }} for {{ part.minutes }}m{{ part.seconds }}s
+      <p>{{ getType(part.type) }} for {{ part.minutes }}m{{ part.seconds }}s</p>
+      <MaterialSymbolsDeleteForever
+        size="1.5rem"
+        @click="handleDelete(part.id)"
+      />
     </li>
   </ol>
 </template>
@@ -294,7 +314,10 @@ input[type='number'] {
 
 .parts {
   li {
-    margin: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 1.5rem;
     font-style: italic;
 
     &.current-part {
