@@ -1,6 +1,9 @@
 <script setup>
 import { ref } from 'vue'
 import MaterialSymbolsDeleteForever from '../assets/TrashCan.vue'
+import walkAudio from '@/assets/audio/walk.mp3'
+import jogAudio from '@/assets/audio/jog.mp3'
+import runAudio from '@/assets/audio/run.mp3'
 
 const partLog = ref([])
 const activePart = ref({})
@@ -15,8 +18,7 @@ const seconds = ref(0)
 const minutesInput = ref(null)
 const secondsInput = ref(null)
 const difference = ref(null)
-
-//TODO: when a part gets deleted, the IDs never change, which breaks the "handleNext" and "handlePrev" functionality. Need to refactor those functions so instead of simply indexing the array and subtracting/adding 1, filter the array for the prev/next part.
+const audio = ref(new Audio(walkAudio))
 
 const getType = (type) => {
   if (type === 'walk') return 'Walking'
@@ -33,13 +35,13 @@ const updateGoal = () => {
 const handleStart = () => {
   status.value = 'active'
   updateGoal()
+  handleAudioUpdate()
   timer.value = setInterval(() => {
     difference.value = goalDate.value - new Date()
     if (difference.value <= 0) {
       if (partLog.value.length <= activePart.value.id + 1) {
         clearInterval(timer.value)
-      }
-      handleNext()
+      } else handleNext()
     } else {
       minutes.value = Math.floor(
         (difference.value % (1000 * 60 * 60)) / (1000 * 60)
@@ -68,6 +70,7 @@ const handleAdd = (type) => {
   })
   if (partLog.value.length === 1) {
     activePart.value = partLog.value[0]
+    handleAudioUpdate()
   }
   secondsInput.value.value = 0
   minutesInput.value.value = 0
@@ -94,8 +97,9 @@ const handlePrevious = () => {
     activePart.value = partLog.value[activePart.value.id - 1]
     minutes.value = activePart.value.minutes
     seconds.value = activePart.value.seconds
+    updateGoal()
+    handleAudioUpdate()
   }
-  updateGoal()
 }
 
 const handleNext = () => {
@@ -105,8 +109,11 @@ const handleNext = () => {
     activePart.value = partLog.value[activePart.value.id + 1]
     minutes.value = activePart.value.minutes
     seconds.value = activePart.value.seconds
+    updateGoal()
+    handleAudioUpdate()
+  } else {
+    handleStop()
   }
-  updateGoal()
 }
 
 const handleBeforeUnload = (e) => {
@@ -123,6 +130,17 @@ const handleDelete = (id) => {
     }
   })
   partLog.value = filteredPartLog
+}
+
+const handleAudioUpdate = () => {
+  if (activePart.value.type === 'walk') {
+    audio.value.src = walkAudio
+  } else if (activePart.value.type === 'jog') {
+    audio.value.src = jogAudio
+  } else if (activePart.value.type === 'run') {
+    audio.value.src = runAudio
+  }
+  if (status.value === 'active') audio.value.play()
 }
 </script>
 
