@@ -19,6 +19,7 @@ const minutesInput = ref(null)
 const secondsInput = ref(null)
 const difference = ref(null)
 const audio = ref(new Audio(walkAudio))
+const exportBtn = ref(null)
 
 const getType = (type) => {
   if (type === 'walk') return 'Walking'
@@ -76,6 +77,15 @@ const handleAdd = (type) => {
   minutesInput.value.value = 0
   minutes.value = activePart.value.minutes
   seconds.value = activePart.value.seconds
+
+  const blob = new Blob(
+    [JSON.stringify(partLog.value.map(({ active, id, ...rest }) => rest), null, 2)],
+    {
+      type: 'application/json',
+    }
+  )
+  exportBtn.value.href = URL.createObjectURL(blob)
+  exportBtn.value.download = 'run.json'
 }
 
 const handleClearLog = () => {
@@ -142,19 +152,39 @@ const handleAudioUpdate = () => {
   }
   if (status.value === 'active') audio.value.play()
 }
+
+const handleImportRun = async (e) => {
+  const file = e.target.files[0]
+  const text = await file.text()
+  const jsonLog = JSON.parse(text).map((part, i) => {
+    return {...part, id: i, 
+    active: i === 0 ? true : false,}
+  })
+  partLog.value = jsonLog
+  activePart.value = jsonLog[0]
+  minutes.value = jsonLog[0].minutes
+  seconds.value = jsonLog[0].seconds
+}
 </script>
 
 <template>
   <div class="top-btn-container">
     <button
       class="start"
-      :disabled="partLog.length <= 0"
+      :disabled="status == 'active' || partLog.length <= 0"
       @click="handleStart"
       ref="startBtn"
     >
       Start
     </button>
-    <button class="stop" @click="handleStop" ref="stopBtn">Stop</button>
+    <button
+      :disabled="status == 'inactive'"
+      class="stop"
+      @click="handleStop"
+      ref="stopBtn"
+    >
+      Stop
+    </button>
     <button @click="handleClearLog">Clear</button>
   </div>
   <p class="active" v-if="status == 'active'">
@@ -218,10 +248,27 @@ const handleAudioUpdate = () => {
       />
     </li>
   </ol>
+  <div class="bottom-btn-container">
+    <input @change="handleImportRun" type="file" id="fileImport" name="fileImport"></input>
+    <label class="button" for="fileImport">Import</label>
+    <a
+      class="button"
+      :class="partLog.length <= 0 ? 'disabled' : ''"
+      ref="exportBtn"
+      >Export</a
+    >
+  </div>
 </template>
 
 <style lang="scss">
-button {
+#fileImport {
+  display: none;
+}
+
+button,
+.button {
+  text-align: center;
+  font-size: 0.85rem;
   padding: 0.75rem 1.5rem;
   font-weight: 600;
   border-radius: 0.5rem;
@@ -231,6 +278,7 @@ button {
     0 2px 4px hsla(0, 0%, 0%, 0.12);
   border: none;
   transition: filter 150ms linear;
+  text-decoration: none;
 
   &:hover {
     cursor: pointer;
@@ -250,7 +298,8 @@ button {
       0 2px 6px hsla(0, 0%, 0%, 0.15), 0 2px 4px hsla(0, 0%, 0%, 0.12);
   }
 
-  &:disabled {
+  &:disabled,
+  &.disabled {
     filter: saturate(0);
     cursor: not-allowed;
   }
@@ -321,11 +370,13 @@ input[type='number'] {
   }
 }
 
-.step-btn-container {
+.step-btn-container,
+.bottom-btn-container {
   display: flex;
   gap: 1rem;
 
-  button {
+  button,
+  .button {
     width: 100%;
   }
 }
